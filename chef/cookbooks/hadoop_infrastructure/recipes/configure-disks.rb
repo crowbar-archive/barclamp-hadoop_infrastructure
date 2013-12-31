@@ -50,18 +50,21 @@ end
 # Find all the unclaimed disks and claim them (Hadoop 2.4 or higher).
 #----------------------------------------------------------------------
 BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).each do |disk|
+  # Skip all ahci enabled disks on the datanodes.
+  next if disk.is_ahci
+  # Reserve disk usage for Cloudera.
   if disk.claim("Cloudera")
     Chef::Log.info("Claiming #{disk.name} for Cloudera")
   else
-    Chef::Log.info("Failed to claim #{disk.name} for Cloudera")
+    Chef::Log.info("Failed to claim disk #{disk.name} for Cloudera")
   end
 end
 
 # Use all the disks claimed by Cloudera on this node.
-
-to_use_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node,"Cloudera").map do |d|
+to_use_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node, "Cloudera").map
+do |d|
   d.device
-  end.sort
+end.sort
 
 #----------------------------------------------------------------------
 # End of version dependant drive setup code.
