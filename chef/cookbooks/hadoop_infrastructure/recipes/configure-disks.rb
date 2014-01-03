@@ -61,8 +61,7 @@ BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).each do |disk|
 end
 
 # Use all the disks claimed by Cloudera on this node.
-to_use_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node, "Cloudera").map
-do |d|
+to_use_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node, "Cloudera").map do |d|
   d.device
 end.sort
 
