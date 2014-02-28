@@ -37,7 +37,7 @@ class HadoopInfrastructureService < ServiceObject
   end
   
   #######################################################################
-  # get_hadoop_config - Get the hadoop related configuration.
+  # get_hadoop_config - Get the Hadoop related configuration.
   #######################################################################
   def get_hadoop_config
     nodeswithroles    = NodeObject.all.find_all { |n| n.roles != nil }
@@ -48,13 +48,13 @@ class HadoopInfrastructureService < ServiceObject
     datanodes         = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-datanode" ) }
     hajournalingnodes = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-ha-journalingnode" ) }
     hafilernodes      = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-ha-filernode" ) }
-    @hadoop_config[:adminnodes] = adminnodes 
-    @hadoop_config[:servernodes] = servernodes 
-    @hadoop_config[:namenodes] = namenodes 
-    @hadoop_config[:edgenodes] = edgenodes 
-    @hadoop_config[:datanodes] = datanodes 
-    @hadoop_config[:hajournalingnodes] = hajournalingnodes 
-    @hadoop_config[:hafilernodes] = hafilernodes
+    @hadoop_config[:adminnodes] = adminnodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:servernodes] = servernodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:namenodes] = namenodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:edgenodes] = edgenodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:datanodes] = datanodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:hajournalingnodes] = hajournalingnodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:hafilernodes] = hafilernodes.sort { |a,b| a.license_key <=> b.license_key }
     return @hadoop_config
   end
   
@@ -71,7 +71,7 @@ class HadoopInfrastructureService < ServiceObject
     edgenodes = []  # Hadoop edge nodes (1..N)
     datanodes = []  # Hadoop data nodes (1..N, min=3).
     hajournalingnodes = [] # Hadoop HA journaling nodes. 
-    hafilernodes      = [] # Hadoop HA filer nodes.
+    hafilernodes = [] # Hadoop HA filer nodes.
     
     #--------------------------------------------------------------------
     # Make a temporary copy of all system nodes.
@@ -90,6 +90,7 @@ class HadoopInfrastructureService < ServiceObject
         nodes.delete(n)
       end
     end
+    nodes.sort! { |a,b| a.ip <=> b.ip }
     
     #--------------------------------------------------------------------
     # Configure the name nodes, edge nodes and data nodes.
@@ -165,6 +166,24 @@ class HadoopInfrastructureService < ServiceObject
   end
   
   #######################################################################
+  # enumerate_roles - Enumerate the role sequence.
+  #######################################################################
+  def enumerate_roles(role, role_list)
+    role_list.each do |element|
+      tnodes = role.override_attributes["hadoop_infrastructure"]["elements"][element]
+      next if tnodes.nil? or tnodes.empty?
+      idx = 1
+      tnodes.each do |n|
+        next if n.nil?
+        node = NodeObject.find_node_by_name n
+        node.license_key = idx
+        node.save
+        idx += 1
+      end
+    end
+  end
+  
+  #######################################################################
   # apply_role_pre_chef_call - Called before a chef role is applied.
   # This code block is setting up for public IP addresses on the Hadoop
   # edge node.
@@ -172,6 +191,17 @@ class HadoopInfrastructureService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("hadoop_infrastructure apply_role_pre_chef_call: entering #{all_nodes.inspect}")
     return if all_nodes.empty? 
+    
+    role_list = [ 
+      "hadoop_infrastructure-cb-adminnode",
+      "hadoop_infrastructure-server",
+      "hadoop_infrastructure-namenode",
+      "hadoop_infrastructure-edgenode",
+      "hadoop_infrastructure-datanode",
+      "hadoop_infrastructure-ha-journalingnode",
+      "hadoop_infrastructure-ha-filernode"
+    ]
+    enumerate_roles(role, role_list)
     
     # Assign a public IP address to the edge node for external access.
     net_svc = NetworkService.new @logger

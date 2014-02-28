@@ -137,9 +137,15 @@ search(:node, "roles:hadoop_infrastructure-namenode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
     ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
-    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
-    Chef::Log.info("HI - NAMENODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
+    role_idx = n[:license_key]
+    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key, :role_idx => role_idx }
     namenodes << node_rec
+  end
+end
+namenodes.sort! { |a,b| a[:role_idx] <=> b[:role_idx] }
+if debug
+  namenodes.each do |node_rec|
+    Chef::Log.info("HI - NAMENODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
   end
 end
 node[:hadoop_infrastructure][:cluster][:namenodes] = namenodes
@@ -153,9 +159,15 @@ search(:node, "roles:hadoop_infrastructure-datanode#{env_filter}") do |n|
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
     ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
     hdfs_mounts = n[:hadoop_infrastructure][:hdfs][:hdfs_mounts] 
-    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key, :hdfs_mounts => hdfs_mounts}
-    Chef::Log.info("HI - DATANODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
+    role_idx = n[:license_key]
+    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key, :hdfs_mounts => hdfs_mounts, :role_idx => role_idx }
     datanodes << node_rec 
+  end
+end
+datanodes.sort! { |a,b| a[:role_idx] <=> b[:role_idx] }
+if debug
+  datanodes.each do |node_rec|
+    Chef::Log.info("HI - DATANODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
   end
 end
 node[:hadoop_infrastructure][:cluster][:datanodes] = datanodes
@@ -168,9 +180,15 @@ search(:node, "roles:hadoop_infrastructure-edgenode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
     ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
-    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
-    Chef::Log.info("HI - EDGENODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
+    role_idx = n[:license_key]
+    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key, :role_idx => role_idx }
     edgenodes << node_rec 
+  end
+end
+edgenodes.sort! { |a,b| a[:role_idx] <=> b[:role_idx] }
+if debug
+  edgenodes.each do |node_rec|
+    Chef::Log.info("HI - EDGENODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
   end
 end
 node[:hadoop_infrastructure][:cluster][:edgenodes] = edgenodes
@@ -183,9 +201,15 @@ search(:node, "roles:hadoop_infrastructure-server#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
     ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
-    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
-    Chef::Log.info("HI - CMSERVERNODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
+    role_idx = n[:license_key]
+    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key, :role_idx => role_idx  }
     cmservernodes << node_rec 
+  end
+end
+cmservernodes.sort! { |a,b| a[:role_idx] <=> b[:role_idx] }
+if debug
+  cmservernodes.each do |node_rec|
+    Chef::Log.info("HI - CMSERVERNODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
   end
 end
 node[:hadoop_infrastructure][:cluster][:cmservernodes] = cmservernodes
@@ -198,9 +222,15 @@ search(:node, "roles:hadoop_infrastructure-ha-filernode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
     ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
-    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
-    Chef::Log.info("HI - FILERNODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
+    role_idx = n[:license_key]
+    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key, :role_idx => role_idx  }
     hafilernodes << node_rec 
+  end
+end
+hafilernodes.sort! { |a,b| a[:role_idx] <=> b[:role_idx] }
+if debug
+  hafilernodes.each do |node_rec|
+    Chef::Log.info("HI - FILERNODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
   end
 end
 node[:hadoop_infrastructure][:cluster][:hafilernodes] = hafilernodes
@@ -213,9 +243,15 @@ search(:node, "roles:hadoop_infrastructure-ha-journalingnode#{env_filter}") do |
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
     ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
-    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
-    Chef::Log.info("HI - JOURNALINGNODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
+    role_idx = n[:license_key]
+    node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key, :role_idx => role_idx }
     hajournalingnodes << node_rec 
+  end
+end
+hajournalingnodes.sort! { |a,b| a[:role_idx] <=> b[:role_idx] }
+if debug
+  hajournalingnodes.each do |node_rec|
+    Chef::Log.info("HI - JOURNALINGNODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
   end
 end
 node[:hadoop_infrastructure][:cluster][:hajournalingnodes] = hajournalingnodes

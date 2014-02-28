@@ -65,6 +65,7 @@ locale_additions:
           export: Export to CSV
           title: Hadoop Cluster Node Information
           name: Name
+          role_idx: ID
           ip_addr: IP Address
           alias: Alias
           cpu: CPU
